@@ -8,9 +8,9 @@ import plotly.graph_objects as go
 
 import pandas as pd
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+application = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-main_df = pd.read_csv('/home/kcvelaga/Desktop/all_tech/core/wiki_v/incubator_wikis/incubator-stats.tsv', sep='\t')
+main_df = pd.read_csv('/data/project/incubatordashboard/www/python/src/incubator-stats.tsv', sep='\t')
 
 wikis_list = list(main_df.project.unique())
 lang_list = ['(all)'] + list(main_df.sort_values('language code')['language code'].unique())
@@ -19,7 +19,7 @@ sort_selector = dcc.Dropdown(['language code', 'Total number of edits', 'Total n
     'Average number of edits per month (last 3 months)', 'Average number of editors per month (last 3 months)', \
     'Total number of bytes added (last 30 days)', 'Total number of bytes removed (last 30 days)'], value='Total number of edits')
 
-app.layout = dbc.Container([
+application.layout = dbc.Container([
     html.Br(),
     html.H1('Incubator Dashboard'),
     html.P('The dashboard gives an overview of activity of incubating projects on incubator.wikimedia.org.'),
@@ -41,7 +41,7 @@ app.layout = dbc.Container([
     ])
 ])
 
-@app.callback(
+@application.callback(
     Output('overview_table', 'figure'),
     Input(wiki_selector, 'value'),
     Input(sort_selector, 'value')
@@ -60,4 +60,6 @@ def update_overview_table(wiki_selection, sort_selection):
     return overview_table
 
 if __name__ == '__main__':
-    app.run()
+    application.run()
+
+app = application.server

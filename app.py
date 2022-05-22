@@ -9,7 +9,6 @@ import plotly.graph_objects as go
 import pandas as pd
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-app = application
 
 main_df = pd.read_csv('/home/kcvelaga/Desktop/all_tech/core/wiki_v/incubator_wikis/incubator-stats.tsv', sep='\t')
 

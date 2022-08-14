@@ -11,7 +11,10 @@ import pandas as pd
 html.Title('Incubator Dashboard')
 application = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-main_df = pd.read_csv('/data/project/incubatordashboard/www/python/src/incubator-stats.tsv', sep='\t')
+stats_path = 'stats/'
+curr_time = datetime.now()
+curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year)}.tsv'
+main_df = pd.read_csv(curr_file_path, sep='\t')
 
 wikis_list = list(main_df.project.unique())
 lang_list = ['(all)'] + list(main_df.sort_values('language code')['language code'].unique())

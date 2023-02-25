@@ -74,7 +74,7 @@ dbc.Col([dcc.RangeSlider(min=0, max=20, step=1, value=[5, 15],
 html.Br(),
     dbc.Row([
         dbc.Col([
-            html.P(f'The dashboard is updated bi-weekly and was last updated on {datetime.now()}')
+           html.P(f'The dashboard is updated bi-weekly and was last updated on {datetime.now().strftime("%B")} {datetime.now().year}')
         ], md=6),
         dbc.Col([
             html.P(f'Developed and maintained by KCVelaga and Jon Harald Søby')

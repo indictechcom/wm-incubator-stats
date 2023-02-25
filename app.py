@@ -42,8 +42,10 @@ overview_table = dash_table.DataTable(
     )
 
 wikis_list = list(main_df.Project.unique())
-lang_list = ['(all)'] + list(main_df.sort_values('Language Code')['Language Code'].unique())
+# lang_list = ['(all)'] + list(main_df.sort_values('Language Code')['Language Code'].unique())
+params = main_df.columns.tolist()[2:]
 wiki_selector = dcc.Dropdown(wikis_list, value=wikis_list, multi=True)
+param_selector = dcc.Dropdown(params, value=params, multi=False)
 
 application.layout = dbc.Container([
     html.Br(),
@@ -55,11 +57,21 @@ application.layout = dbc.Container([
             wiki_selector], md=7),
     ]),
     html.Br(),
+dbc.Row([dbc.Col([param_selector],md=4),
+dbc.Col([dcc.RangeSlider(min=0, max=20, step=1, value=[5, 15],
+               id='range-slider',
+               marks=None,
+               allowCross=False,
+               tooltip={"placement": "left", "always_visible": True,},
+    )],md=8),
+]),
+    html.Br(),
     dbc.Row(
         dbc.Col(
             overview_table
 ),
 ),
+html.Br(),
     dbc.Row([
         dbc.Col([
             html.P(f'The dashboard is updated bi-weekly and was last updated on {datetime.now()}')

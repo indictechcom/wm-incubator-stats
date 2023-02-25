@@ -21,17 +21,19 @@ overview_table = dash_table.DataTable(
     columns=[{"name": i, "id": i} for i in main_df.columns],
     data=main_df.to_dict('records'),
     sort_action='native',
-    sort_mode='multi',
+    sort_mode='single',
     style_table={
-        'maxHeight': '425px',
-        'overflowY': 'scroll',
+        'maxHeight': 'calc(50vh)',
     },
     style_header={
         'backgroundColor':'paleturquoise',
-        'fontSize': '14px'
+        'fontSize': '14px',
+        'fontWeight': 'bold',
     },
+    fixed_rows={'headers': True},
     style_cell={
         'textAlign': 'left',
+        'fontFamily': 'Arial',
         'backgroundColor':'mintcream',
         'whiteSpace': 'normal',
         'height': '27.5px',
@@ -39,8 +41,8 @@ overview_table = dash_table.DataTable(
     },
     )
 
-wikis_list = list(main_df.project.unique())
-lang_list = ['(all)'] + list(main_df.sort_values('language code')['language code'].unique())
+wikis_list = list(main_df.Project.unique())
+lang_list = ['(all)'] + list(main_df.sort_values('Language Code')['Language Code'].unique())
 wiki_selector = dcc.Dropdown(wikis_list, value=wikis_list, multi=True)
 
 application.layout = dbc.Container([
@@ -52,6 +54,7 @@ application.layout = dbc.Container([
             html.P('Project'),
             wiki_selector], md=7),
     ]),
+    html.Br(),
     dbc.Row(
         dbc.Col(
             overview_table
@@ -72,7 +75,7 @@ application.layout = dbc.Container([
     Input(wiki_selector, 'value'),
 )
 def update_overview_table(wiki_selection):
-    overview_df = main_df[main_df.project.isin(wiki_selection)]
+    overview_df = main_df[main_df.Project.isin(wiki_selection)]
     overview_table = go.Figure(data=[go.Table(
         header=dict(values=list(overview_df.columns), align='left', fill_color='paleturquoise', font=dict(size=14)),
         cells=dict(values=[overview_df[col] for col in overview_df.columns], align='left', height=27.5,  fill_color='mintcream', font=dict(size=14)))

@@ -16,6 +16,9 @@ curr_time = datetime.now()
 curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year)}.tsv'
 main_df = pd.read_csv(curr_file_path, sep='\t')
 
+link_url = 'https://github.com/jhsoby/IncubatorDashboard'
+link = dcc.Link('Source Code', href=link_url)
+
 overview_table = dash_table.DataTable(
     id='overview_table',
     columns=[{"name": i, "id": i} for i in main_df.columns],
@@ -74,11 +77,11 @@ dbc.Col([dcc.RangeSlider(min=0, max=20, step=1, value=[5, 15],
 html.Br(),
     dbc.Row([
         dbc.Col([
-           html.P(f'The dashboard is updated bi-weekly and was last updated on {datetime.now().strftime("%B")} {datetime.now().year}')
-        ], md=6),
+           html.P(f'The dashboard is updated monthly and was last updated on {datetime.now().strftime("%B")} {datetime.now().year}')
+        ]),
         dbc.Col([
-            html.P(f'Developed and maintained by KCVelaga and Jon Harald Søby')
-        ], md=6)
+            link
+        ],md=2,className='text-right')
     ])
 ])
 

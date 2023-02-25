@@ -22,6 +22,10 @@ overview_table = dash_table.DataTable(
     data=main_df.to_dict('records'),
     sort_action='native',
     sort_mode='multi',
+    style_table={
+        'maxHeight': '425px',
+        'overflowY': 'scroll',
+    },
     style_header={
         'backgroundColor':'paleturquoise',
         'fontSize': '14px'

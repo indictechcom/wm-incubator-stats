@@ -32,38 +32,15 @@ WITH base_table AS (
     prefix <> ''
   ORDER BY 
     rev_id DESC),
-        	
-  edits_table AS (
-    SELECT 
-        prefix, 
-        COUNT(DISTINCT rev_id) AS edit_count
-    FROM 
-        base_table
-    GROUP BY 
-        prefix),
 
-  actor_table AS (
-    SELECT 
-        prefix, COUNT(DISTINCT actor_id) AS actor_count
-    FROM 
-        base_table
-    GROUP BY 
-        prefix),
-
-  byte_table AS (
+  primary_metrics AS (
     SELECT 
         prefix, 
         SUM(CASE WHEN byte_diff < 0 THEN byte_diff ELSE 0 END) AS bytes_removed_30D,
-        SUM(CASE WHEN byte_diff >= 0 THEN byte_diff ELSE 0 END) AS bytes_added_30D
-    FROM 
-        base_table
-    GROUP BY 
-        prefix),
-
-  page_table AS (
-    SELECT 
-        prefix, 
-        COUNT(DISTINCT page_id) AS pages_count
+        SUM(CASE WHEN byte_diff >= 0 THEN byte_diff ELSE 0 END) AS bytes_added_30D,
+    	COUNT(DISTINCT actor_id) AS actor_count,
+    	COUNT(DISTINCT rev_id) AS edit_count,
+    	COUNT(DISTINCT page_id) AS pages_count
     FROM 
         base_table
     GROUP BY 
@@ -81,7 +58,7 @@ WITH base_table AS (
         MONTH(rev_timestamp) < MONTH(NOW()) AND
         YEAR(rev_timestamp) = YEAR(NOW())),
   
-  monthly_grouping AS (
+  monthly_grouping_3M AS (
     SELECT 
         prefix, 
         month, 
@@ -93,18 +70,18 @@ WITH base_table AS (
         prefix, 
         month),
     
-  avg_table AS (
+  avg_table_3M AS (
     SELECT 
         prefix, 
     	AVG(edits_by_month) AS avg_edits_3M, 
     	AVG(editors_by_month) AS avg_editors_3M
     FROM 
-        monthly_grouping
+        monthly_grouping_3M
     GROUP BY
         prefix)
 
 SELECT 
-    e.prefix, 
+    pm.prefix, 
     edit_count, 
     actor_count,
     bytes_added_30D, 
@@ -113,10 +90,7 @@ SELECT
     CAST(avg_edits_3M AS INT) AS avg_edits_3M, 
     CAST(avg_editors_3M AS INT) AS avg_editors_3M
 FROM 
-    edits_table e
-    JOIN actor_table a ON a.prefix = e.prefix
-    JOIN byte_table b  ON b.prefix = e.prefix
-    JOIN page_table p ON p.prefix = e.prefix
-    JOIN avg_table ON avg_table.prefix = e.prefix
+    primary_metrics pm
+    JOIN avg_table_3M avg_3M ON avg_3M.prefix = pm.prefix
 ORDER BY 
-    e.edit_count DESC
+    avg_editors_3M DESC

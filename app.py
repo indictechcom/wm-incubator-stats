@@ -48,7 +48,11 @@ wikis_list = list(main_df.Project.unique())
 # lang_list = ['(all)'] + list(main_df.sort_values('Language Code')['Language Code'].unique())
 params = main_df.columns.tolist()[2:]
 wiki_selector = dcc.Dropdown(wikis_list, value=wikis_list, multi=True)
-param_selector = dcc.Dropdown(params, value=params, multi=False)
+param_selector = dcc.Dropdown(params, value=params[0], multi=False)
+min = main_df[params[0]].min()
+max = main_df[params[0]].max()
+
+
 
 application.layout = dbc.Container([
     html.Br(),
@@ -61,10 +65,11 @@ application.layout = dbc.Container([
     ]),
     html.Br(),
 dbc.Row([dbc.Col([param_selector],md=4),
-dbc.Col([dcc.RangeSlider(min=0, max=20, step=1, value=[5, 15],
+dbc.Col([dcc.RangeSlider(min=min, max=max, step=1, value=[min, max],
                id='range-slider',
                marks=None,
                allowCross=False,
+               updatemode='mouseup',
                tooltip={"placement": "left", "always_visible": True,},
     )],md=8),
 ]),
@@ -87,17 +92,41 @@ html.Br(),
 
 @application.callback(
     Output('overview_table', 'data'),
+    Output('range-slider', 'marks'),
+    Output('range-slider', 'min'),
+    Output('range-slider', 'max'),
     Input(wiki_selector, 'value'),
+    Input(param_selector, 'value'),
+    Input('range-slider', 'value'),
 )
-def update_overview_table(wiki_selection):
+def update_overview_table(wiki_selection, param_selection,slider_value):
+    print(slider_value)
     overview_df = main_df[main_df.Project.isin(wiki_selection)]
+    overview_df_copy = overview_df.copy()
+    overview_df = overview_df[(overview_df[param_selection] >= slider_value[0]) & (overview_df[param_selection] <= slider_value[1])]
+
     overview_table = go.Figure(data=[go.Table(
         header=dict(values=list(overview_df.columns), align='left', fill_color='paleturquoise', font=dict(size=14)),
         cells=dict(values=[overview_df[col] for col in overview_df.columns], align='left', height=27.5,  fill_color='mintcream', font=dict(size=14)))
     ])
+
+    
+    min_value = int(overview_df_copy[param_selection].min())
+    max_value = int(overview_df_copy[param_selection].max())
+    # slider_value = [min_value,max_value]
+
+    marks = {
+        min_value: str(min_value),
+        max_value: str(max_value),
+    }
+
+    slider_marks = marks.copy()
+    slider_marks[slider_value[0]] = str(slider_value[0])
+    slider_marks[slider_value[1]] = str(slider_value[1])
+
     overview_table.update_layout(height=1000)
     data = overview_df.to_dict('records')
-    return data
+    return data,marks,min_value, max_value
 
 if __name__ == '__main__':
     application.run_server(debug=True)

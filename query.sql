@@ -21,13 +21,18 @@ WITH base_table AS (
   LEFT OUTER JOIN 
     recentchanges rc 
     ON rev.rev_id = rc.rc_this_oldid
+  JOIN
+  	user
+  	ON actor.actor_id = user.user_id
   WHERE 
-    page_namespace IN (0, 1, 10, 11, 14, 15, 828, 829)
+    page_namespace IN (0, 1, 10, 11, 14, 15, 828, 829) AND
+  	-- explicity remove admins who often make edits across multiple incubating projects
+  	NOT user_name IN ('MF-Warburg', 'Jon Harald Søby', 'Minorax')
   HAVING 
     prefix <> ''
   ORDER BY 
     rev_id DESC),
-  
+        	
   edits_table AS (
     SELECT 
         prefix, 

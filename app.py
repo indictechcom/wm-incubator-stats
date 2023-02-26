@@ -17,7 +17,7 @@ curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time
 main_df = pd.read_csv(curr_file_path, sep='\t')
 
 link_url = 'https://github.com/jhsoby/IncubatorDashboard'
-link = dcc.Link('Source Code', href=link_url)
+link = dcc.Link('Source Code', href=link_url, refresh=True)
 
 overview_table = dash_table.DataTable(
     id='overview_table',

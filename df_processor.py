@@ -11,7 +11,8 @@ project_labels = {
 
 stats_path = 'stats/'
 curr_time = dt.now()
-curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year)}.tsv'
+#curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year)}.tsv'
+curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year-1)}.tsv'
 df = pd.read_csv(curr_file_path, sep='\t')
 
 df['Project'] = df.prefix.apply(lambda x:project_labels[x.split('/')[0]])

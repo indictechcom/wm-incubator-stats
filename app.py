@@ -13,7 +13,8 @@ application = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 stats_path = 'stats/'
 curr_time = datetime.now()
-curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year)}.tsv'
+#curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year)}.tsv'
+curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year-1)}.tsv'
 main_df = pd.read_csv(curr_file_path, sep='\t')
 
 link_url = 'https://github.com/kcvelaga/IncubatorDashboard'

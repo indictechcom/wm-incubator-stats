@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incubator Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Incubator Dashboard</h1>
+        <p class="lead">The dashboard gives an overview of activity of incubating projects on incubator.wikimedia.org.</p>
+        <form method="POST" id="dashboard-form">
+            <div class="form-group">
+                <label for="param">Parameter</label>
+                <select id="param" name="param" class="form-control">
+                    {% for param in params %}
+                        <option value="{{ param }}" {% if param == selected_param %}selected{% endif %}>{{ param }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="slider">Range</label>
+                <div class="d-flex">
+                    <input type="number" id="slider_min" name="slider_min" class="form-control mr-2" value="{{ slider_values[0] }}">
+                    <input type="number" id="slider_max" name="slider_max" class="form-control" value="{{ slider_values[1] }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="m-4 relative">
+                    <label>Project</label>
+                    <input type="text" id="tags" name="tags" placeholder="Enter Project" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <div id="tags-suggestions" class="mt-2 bg-white border border-gray-300 rounded-lg shadow-md hidden"></div>
+                    <div id="tags-container" class="mt-2"></div>
+                </div>
+                <input type="hidden" id="hidden-tags-input" name="hidden_tags" value="{{ selected_wikis | join(',') }}">
+            </div>
+        </form>
+        <div class="mt-3">
+            {{ graph_html|safe }}
+        </div>
+        <p class="mt-4">The dashboard is updated monthly and was last updated on {{ current_time }}</p>
+        <a href="https://github.com/kcvelaga/IncubatorDashboard" class="btn btn-secondary">Source Code</a>
+    </div>
+    <br>
+</body>
+</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js"></script>
+
+<script>
+    const form = document.getElementById('dashboard-form');
+
+    document.getElementById('param').addEventListener('change', () => {
+        form.submit();
+    });
+
+    document.getElementById('slider_min').addEventListener('change', () => {
+        form.submit();
+    });
+
+    document.getElementById('slider_max').addEventListener('change', () => {
+        form.submit();
+    });
+
+    const tagsInput = document.getElementById('tags');
+    const tagsSuggestions = document.getElementById('tags-suggestions');
+    const tagsContainer = document.getElementById('tags-container');
+    const hiddenInput = document.getElementById('hidden-tags-input');
+
+    const predefinedTags = [
+    {% for wiki in wikis %}
+        '{{ wiki }}',
+    {% endfor %}
+    ];
+
+    function showTagsSuggestions(matchedTags) {
+        const suggestionsHTML = matchedTags.map(tag => `<div class="p-2 cursor-pointer hover:bg-gray-100">${tag}</div>`).join('');
+        tagsSuggestions.innerHTML = suggestionsHTML;
+        tagsSuggestions.classList.remove('hidden');
+    }
+
+    function hideTagsSuggestions() {
+        tagsSuggestions.innerHTML = '';
+        tagsSuggestions.classList.add('hidden');
+    }
+
+    tagsInput.addEventListener('input', () => {
+        const inputValue = tagsInput.value.toLowerCase().trim();
+        const matchedTags = predefinedTags.filter(tag => tag.includes(inputValue));
+
+        if (matchedTags.length > 0) {
+            showTagsSuggestions(matchedTags);
+        } else {
+            hideTagsSuggestions();
+        }
+    });
+
+    tagsInput.addEventListener('focus', () => {
+        if (predefinedTags.length > 0) {
+            showTagsSuggestions(predefinedTags);
+        }
+    });
+
+    document.addEventListener('click', event => {
+        if (!tagsInput.contains(event.target) && !tagsSuggestions.contains(event.target)) {
+            hideTagsSuggestions();
+        }
+    });
+
+    tagsSuggestions.addEventListener('click', event => {
+        if (event.target.tagName === 'DIV') {
+            const selectedTag = event.target.textContent;
+            if (!tagsContainer.querySelector(`[data-tag="${selectedTag}"]`)) {
+                addTag(selectedTag);
+            }
+            tagsInput.value = '';
+            hideTagsSuggestions();
+            form.submit();
+        }
+    });
+
+    tagsInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && tagsInput.value.trim() !== '') {
+            addTag(tagsInput.value.trim());
+            tagsInput.value = '';
+            event.preventDefault();
+            form.submit();
+        }
+    });
+
+    tagsContainer.addEventListener('click', event => {
+        if (event.target.classList.contains('tag-close')) {
+            const tagToRemove = event.target.getAttribute('data-tag');
+            const tagElement = event.target.parentElement;
+            tagsContainer.removeChild(tagElement);
+            populateHiddenInput();
+            form.submit();
+        }
+    });
+
+    function addTag(tagText) {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'tag';
+        tagElement.setAttribute('data-tag', tagText);
+        tagElement.innerHTML = `
+            <span class="tag-text">${tagText}</span>
+            <span class="tag-close" data-tag="${tagText}">x</span>
+        `;
+        tagsContainer.appendChild(tagElement);
+        populateHiddenInput();
+    }
+
+    function populateHiddenInput() {
+        const tags = [];
+        tagsContainer.querySelectorAll('.tag-text').forEach(tag => {
+            tags.push(tag.textContent.trim());
+        });
+        hiddenInput.value = tags.join(',');
+    }
+
+    function populateTagsContainer() {
+        const selectedTags = hiddenInput.value.split(',');
+        selectedTags.forEach(tag => {
+            if (tag.trim() !== '') {
+                addTag(tag.trim());
+            }
+        });
+    }
+
+    // Populate tags container on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        populateTagsContainer();
+    });
+</script>

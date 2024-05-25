@@ -23,9 +23,10 @@ WITH base_table AS (
     ON rev.rev_id = rc.rc_this_oldid
   JOIN
   	user
-  	ON actor.actor_id = user.user_id
+  	ON actor.actor_name = user.user_name
   WHERE 
     page_namespace IN (0, 1, 10, 11, 14, 15, 828, 829) AND
+    page_is_redirect = 0 AND
   	-- explicity remove admins who often make edits across multiple incubating projects
   	NOT user_name IN ('MF-Warburg', 'Jon Harald Søby', 'Minorax')
   HAVING 

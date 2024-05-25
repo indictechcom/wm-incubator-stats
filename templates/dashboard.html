@@ -28,12 +28,14 @@
                 </div>
             </div>
             <div class="form-group">
-                <div class="m-4 relative">
-                    <label>Project</label>
-                    <input type="text" id="tags" name="tags" placeholder="Enter Project" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                    <div id="tags-suggestions" class="mt-2 bg-white border border-gray-300 rounded-lg shadow-md hidden"></div>
-                    <div id="tags-container" class="mt-2"></div>
-                </div>
+                <label for="project-dropdown">Project</label>
+                <select id="project-dropdown" class="form-control">
+                    <option value="">Select Project</option>
+                    {% for wiki in wikis %}
+                        <option value="{{ wiki }}">{{ wiki }}</option>
+                    {% endfor %}
+                </select>
+                <div id="tags-container" class="mt-2"></div>
                 <input type="hidden" id="hidden-tags-input" name="hidden_tags" value="{{ selected_wikis | join(',') }}">
             </div>
         </form>
@@ -64,70 +66,17 @@
         form.submit();
     });
 
-    const tagsInput = document.getElementById('tags');
-    const tagsSuggestions = document.getElementById('tags-suggestions');
+    const projectDropdown = document.getElementById('project-dropdown');
     const tagsContainer = document.getElementById('tags-container');
     const hiddenInput = document.getElementById('hidden-tags-input');
 
-    const predefinedTags = [
-    {% for wiki in wikis %}
-        '{{ wiki }}',
-    {% endfor %}
-    ];
-
-    function showTagsSuggestions(matchedTags) {
-        const suggestionsHTML = matchedTags.map(tag => `<div class="p-2 cursor-pointer hover:bg-gray-100">${tag}</div>`).join('');
-        tagsSuggestions.innerHTML = suggestionsHTML;
-        tagsSuggestions.classList.remove('hidden');
-    }
-
-    function hideTagsSuggestions() {
-        tagsSuggestions.innerHTML = '';
-        tagsSuggestions.classList.add('hidden');
-    }
-
-    tagsInput.addEventListener('input', () => {
-        const inputValue = tagsInput.value.toLowerCase().trim();
-        const matchedTags = predefinedTags.filter(tag => tag.includes(inputValue));
-
-        if (matchedTags.length > 0) {
-            showTagsSuggestions(matchedTags);
-        } else {
-            hideTagsSuggestions();
+    projectDropdown.addEventListener('change', () => {
+        const selectedTag = projectDropdown.value;
+        if (selectedTag && !tagsContainer.querySelector(`[data-tag="${selectedTag}"]`)) {
+            addTag(selectedTag);
         }
-    });
-
-    tagsInput.addEventListener('focus', () => {
-        if (predefinedTags.length > 0) {
-            showTagsSuggestions(predefinedTags);
-        }
-    });
-
-    document.addEventListener('click', event => {
-        if (!tagsInput.contains(event.target) && !tagsSuggestions.contains(event.target)) {
-            hideTagsSuggestions();
-        }
-    });
-
-    tagsSuggestions.addEventListener('click', event => {
-        if (event.target.tagName === 'DIV') {
-            const selectedTag = event.target.textContent;
-            if (!tagsContainer.querySelector(`[data-tag="${selectedTag}"]`)) {
-                addTag(selectedTag);
-            }
-            tagsInput.value = '';
-            hideTagsSuggestions();
-            form.submit();
-        }
-    });
-
-    tagsInput.addEventListener('keydown', event => {
-        if (event.key === 'Enter' && tagsInput.value.trim() !== '') {
-            addTag(tagsInput.value.trim());
-            tagsInput.value = '';
-            event.preventDefault();
-            form.submit();
-        }
+        projectDropdown.value = '';
+        form.submit();
     });
 
     tagsContainer.addEventListener('click', event => {

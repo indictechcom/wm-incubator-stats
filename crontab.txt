@@ -1,2 +1,0 @@
-*/10 * * * * source .venv/bin/activate
-*/10 * * * * /usr/bin/python3 cron.py

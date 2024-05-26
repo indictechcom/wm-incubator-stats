@@ -1,3 +1,3 @@
 #!/bin/bash
 source .venv/bin/activate
-python3 cron.py
+python3 df_processor.py

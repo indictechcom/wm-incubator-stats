@@ -2,14 +2,23 @@ from flask import Flask, render_template, request
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
+import glob
+import os
 
 app = Flask(__name__)
 
-stats_path = '../wm-incubator-stats/stats/'
-curr_time = datetime.now()
-curr_file_path = f'{stats_path}{curr_time.strftime("%B").lower()}_{str(curr_time.year-1)}.tsv'
-main_df = pd.read_csv(curr_file_path, sep='\t')
+def get_latest_data_file(stats_path):
+    data_files = glob.glob(os.path.join(stats_path, "*.tsv"))
 
+    if not data_files:
+        return None
+
+    def extract_date(filename):
+        date_str = filename.split('/')[-1].split('.')[0]
+        return date_str
+
+    data_files.sort(key=extract_date, reverse=True)
+    return data_files[0]
 
 def create_figure(data, param, slider_values):
     filtered_data = data[(data[param] >= slider_values[0]) & (data[param] <= slider_values[1])]
@@ -23,12 +32,14 @@ def create_figure(data, param, slider_values):
 
 @app.route('/', methods=['GET', 'POST'])
 def dashboard():
+    latest_file_path = get_latest_data_file('stats/')
+    main_df = pd.read_csv(latest_file_path, sep='\t')
     selected_wikis = list(main_df.Project.unique())
     selected_param = main_df.columns.tolist()[2]
     slider_min = int(main_df[selected_param].min())
     slider_max = int(main_df[selected_param].max())
     slider_values = [slider_min, slider_max]
-
+    latest_update = latest_file_path.split('/')[1].split('.')[0]
     if request.method == 'POST':
         selected_wikis = request.form['hidden_tags'].split(',')
         print(selected_wikis)
@@ -49,7 +60,7 @@ def dashboard():
                            slider_max=slider_max,
                            slider_values=slider_values,
                            graph_html=graph_html,
-                           current_time=datetime.now().strftime("%B %Y"))
+                           latest_update=str(latest_update))
 
 if __name__ == '__main__':
     app.run(debug=True)

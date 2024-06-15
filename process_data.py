@@ -43,6 +43,9 @@ with conn.cursor() as cur:
 
 stats = pd.DataFrame(result, columns=column_labels.values().tolist())
 stats['Project'] = stats['Project'].apply(lambda x: x.decode('utf-8'))
+print(type(stats))
+print(stats.columns)
+print(stats)
 
 stats_path = "stats"
 with open(f"{stats_path}/dates.json", "r") as file:

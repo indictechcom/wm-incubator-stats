@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 import pandas as pd
 import urllib.request
@@ -12,6 +12,9 @@ user_agent = forge.set_user_agent(
     email='kcvelaga@gmail.com'
 )
 
+with open('stats/logs.json', 'r') as file:
+    logs = json.load(file)
+
 project_labels = {
     "Wp": "Wikipedia",
     "Wt": "Wiktionary",
@@ -22,7 +25,7 @@ project_labels = {
 }
 
 column_labels = {
-    "project": "Project",
+    "prefix": "Prefix",
     "edit_count": "Total edits",
     "actor_count": "Total editors",
     "pages_count": "Total pages",
@@ -36,34 +39,45 @@ sql_query_url = "https://raw.githubusercontent.com/indictechcom/wm-incubator-sta
 with urllib.request.urlopen(sql_query_url) as response:
     query = response.read().decode()
 
-conn = forge.connect('incubatorwiki')
-with conn.cursor() as cur:
-    cur.execute(query)
-    result = cur.fetchall()
+curr_dt = date.today()
+curr_dt_str = str(curr_dt)
+curr_log = {}
 
-stats = pd.DataFrame(result, columns=list(column_labels.values()))
-stats['Project'] = stats['Project'].apply(lambda x: x.decode('utf-8'))
-print(type(stats))
-print(stats.columns)
-print(stats)
+try:
+    conn = forge.connect('incubatorwiki')
+    with conn.cursor() as cur:
+        cur.execute(query)
+        result = cur.fetchall()
 
-stats_path = "stats"
-with open(f"{stats_path}/dates.json", "r") as file:
-    dated_files = json.load(file)
+    stats = pd.DataFrame(result, columns=list(column_labels.keys()))
+    stats['Project'] = stats['Project'].apply(lambda x: x.decode('utf-8'))
+    curr_log['is_fetch_successful'] = True
+except Exception as e:
+    curr_log['is_fetch_successful'] = False
+    curr_log['fetch_failure_reason'] = str(e)
 
-dated_files_sorted = sorted(
-    dated_files.items(), key=lambda x: datetime.strptime(x[0], "%Y-%m-%d")
-)
-latest_dt, latest_file = dated_files_sorted[-1]
+if curr_log['is_fetch_successful']:
+    try:
+        project_cols = ["Project", "Language Code"]
+        stats[project_cols] = stats["prefix"].str.split("/", expand=True)
 
-df = pd.read_csv(f"{stats_path}/raw/{latest_file}", sep="\t")
+        stats = stats.rename(column_labels, axis=1)
+        stats["Project"] = stats["Project"].map(project_labels)
 
-project_cols = ["Project", "Language Code"]
-df[project_cols] = df["prefix"].str.split("/", expand=True)
+        select_cols = project_cols + list(column_labels.values())
+        stats = stats[select_cols]
+        print(stats.head(10))
+        print(f"stats/{curr_dt_str}.tsv")
 
-df = df.rename(column_labels, axis=1)
-df["Project"] = df["Project"].map(project_labels)
+        stats.to_csv(f"stats/{curr_dt_str}.tsv", sep="\t", index=False)
 
-select_cols = project_cols + list(column_labels.values())
-df = df[select_cols]
-df.to_csv(f"stats/processed/{latest_file}", sep="\t", index=False)
+        curr_log['is_processing_successful'] = True
+    except Exception as e:
+        curr_log['is_processing_successful'] = False
+        curr_log['processing_failure_reason'] = str(e)
+
+logs[curr_dt_str] = curr_log
+with open('stats/logs.json', 'w') as outfile:
+    json.dump(logs, outfile)
+print(curr_log)
+print(logs)

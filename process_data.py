@@ -41,7 +41,7 @@ with conn.cursor() as cur:
     cur.execute(query)
     result = cur.fetchall()
 
-stats = pd.DataFrame(result, columns=column_labels.values().tolist())
+stats = pd.DataFrame(result, columns=list(column_labels.values()))
 stats['Project'] = stats['Project'].apply(lambda x: x.decode('utf-8'))
 print(type(stats))
 print(stats.columns)

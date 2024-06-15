@@ -6,25 +6,31 @@
     <title>Incubator Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.css">
 </head>
 <body>
     <div class="container">
         <h1 class="mt-4">Incubator Dashboard</h1>
         <p class="lead">The dashboard gives an overview of activity of incubating projects on incubator.wikimedia.org.</p>
         <form method="POST" id="dashboard-form">
-            <div class="form-group">
-                <label for="param">Parameter</label>
-                <select id="param" name="param" class="form-control">
-                    {% for param in params %}
-                        <option value="{{ param }}" {% if param == selected_param %}selected{% endif %}>{{ param }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="slider">Range</label>
-                <div class="d-flex">
-                    <input type="number" id="slider_min" name="slider_min" class="form-control mr-2" value="{{ slider_values[0] }}">
-                    <input type="number" id="slider_max" name="slider_max" class="form-control" value="{{ slider_values[1] }}">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="slider">Range</label>
+                        <div id="slider" class="mt-3"></div>
+                        <input type="hidden" id="slider_min" name="slider_min" value="{{ slider_values[0] }}">
+                        <input type="hidden" id="slider_max" name="slider_max" value="{{ slider_values[1] }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="param">Parameter</label>
+                        <select id="param" name="param" class="form-control">
+                            {% for param in params %}
+                                <option value="{{ param }}" {% if param == selected_param %}selected{% endif %}>{{ param }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="form-group">
@@ -50,20 +56,82 @@
 </html>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.7.0/nouislider.min.js"></script>
 
 <script>
     const form = document.getElementById('dashboard-form');
 
-    document.getElementById('param').addEventListener('change', () => {
-        form.submit();
+    const slider = document.getElementById('slider');
+    const sliderMinInput = document.getElementById('slider_min');
+    const sliderMaxInput = document.getElementById('slider_max');
+    const paramSelect = document.getElementById('param');
+
+    // Initialize noUiSlider
+    noUiSlider.create(slider, {
+        start: [sliderMinInput.value, sliderMaxInput.value],
+        connect: true,
+        range: {
+            'min': Number(sliderMinInput.value),
+            'max': Number(sliderMaxInput.value)
+        },
+        step: 1,
+        tooltips: true,
+        format: {
+            to: function(value) {
+                return Math.round(value);
+            },
+            from: function(value) {
+                return Number(value);
+            }
+        }
     });
 
-    document.getElementById('slider_min').addEventListener('change', () => {
-        form.submit();
+    // Update hidden inputs on slider change
+    slider.noUiSlider.on('update', function(values, handle) {
+        sliderMinInput.value = values[0];
+        sliderMaxInput.value = values[1];
     });
 
-    document.getElementById('slider_max').addEventListener('change', () => {
-        form.submit();
+    // Update slider range based on selected parameter
+    paramSelect.addEventListener('change', () => {
+        updateSliderRange(paramSelect.value);
+    });
+
+    // Function to get the range for the selected parameter (dynamic range fetching)
+    function getRangeForParameter(param) {
+        const paramMin = Number('{{ slider_min }}'); // Use the min value passed from Flask
+        const paramMax = Number('{{ slider_max }}'); // Use the max value passed from Flask
+        return { min: paramMin, max: paramMax };
+    }
+
+    function updateSliderRange(param) {
+        const range = getRangeForParameter(param);
+        slider.noUiSlider.updateOptions({
+            range: {
+                'min': range.min,
+                'max': range.max
+            }
+        });
+
+        // Reset slider to new range values
+        slider.noUiSlider.set([range.min, range.max]);
+    }
+
+    // Initial range update based on the preselected parameter
+    document.addEventListener('DOMContentLoaded', function() {
+        const initialParam = paramSelect.value;
+        const initialRange = getRangeForParameter(initialParam);
+
+        // Set initial slider range
+        slider.noUiSlider.updateOptions({
+            range: {
+                'min': initialRange.min,
+                'max': initialRange.max
+            }
+        });
+        slider.noUiSlider.set([initialRange.min, initialRange.max]);
+
+        populateTagsContainer();
     });
 
     const projectDropdown = document.getElementById('project-dropdown');
@@ -117,9 +185,4 @@
             }
         });
     }
-
-    // Populate tags container on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        populateTagsContainer();
-    });
 </script>

@@ -3,6 +3,14 @@ import os
 from datetime import datetime
 
 import pandas as pd
+import urllib.request
+import toolforge as forge
+
+user_agent = forge.set_user_agent(
+    tool='Wikimedia Incubator Dashboard',
+    url='https://incubatordashboard.toolforge.org/',
+    email='kcvelaga@gmail.com'
+)
 
 project_labels = {
     "Wp": "Wikipedia",
@@ -22,6 +30,15 @@ column_labels = {
     "avg_edits_3M": "Average monthly edits",
     "avg_editors_3M": "Average monthly editors",
 }
+
+sql_query_url = "https://raw.githubusercontent.com/indictechcom/wm-incubator-stats/main/query.sql"
+with urllib.request.urlopen(sql_query_url) as response:
+    query = response.read().decode()
+
+conn = forge.connect('incubatorwiki')
+with conn.cursor() as cur:
+    query_result = cur.execute(query)
+print(query_result)
 
 stats_path = "stats"
 with open(f"{stats_path}/dates.json", "r") as file:

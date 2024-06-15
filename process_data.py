@@ -34,7 +34,7 @@ column_labels = {
 
 sql_query_url = "https://raw.githubusercontent.com/indictechcom/wm-incubator-stats/main/query.sql"
 with urllib.request.urlopen(sql_query_url) as response:
-query = response.read().decode()
+    query = response.read().decode()
 
 conn = forge.connect('incubatorwiki')
 with conn.cursor() as cur:

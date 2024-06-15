@@ -22,7 +22,7 @@ project_labels = {
 }
 
 column_labels = {
-    "project": "Project"
+    "project": "Project",
     "edit_count": "Total edits",
     "actor_count": "Total editors",
     "pages_count": "Total pages",

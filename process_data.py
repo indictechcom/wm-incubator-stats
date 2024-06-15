@@ -22,6 +22,7 @@ project_labels = {
 }
 
 column_labels = {
+    "project": "Project"
     "edit_count": "Total edits",
     "actor_count": "Total editors",
     "pages_count": "Total pages",
@@ -33,15 +34,15 @@ column_labels = {
 
 sql_query_url = "https://raw.githubusercontent.com/indictechcom/wm-incubator-stats/main/query.sql"
 with urllib.request.urlopen(sql_query_url) as response:
-    query = response.read().decode()
+query = response.read().decode()
 
 conn = forge.connect('incubatorwiki')
-
-print('connected')
 with conn.cursor() as cur:
-    query_result = cur.execute(query)
-print(type(query_result))
-print(query_result.fetchall())
+    cur.execute(query)
+    result = cur.fetchall()
+
+stats = pd.DataFrame(result, columns=column_labels.values().tolist())
+stats['Project'] = stats['Project'].apply(lambda x: x.decode('utf-8'))
 
 stats_path = "stats"
 with open(f"{stats_path}/dates.json", "r") as file:

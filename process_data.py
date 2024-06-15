@@ -36,9 +36,12 @@ with urllib.request.urlopen(sql_query_url) as response:
     query = response.read().decode()
 
 conn = forge.connect('incubatorwiki')
+
+print('connected')
 with conn.cursor() as cur:
     query_result = cur.execute(query)
-print(query_result)
+print(type(query_result))
+print(query_result.fetchall())
 
 stats_path = "stats"
 with open(f"{stats_path}/dates.json", "r") as file:

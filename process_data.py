@@ -50,7 +50,7 @@ try:
         result = cur.fetchall()
 
     stats = pd.DataFrame(result, columns=list(column_labels.keys()))
-    stats['Project'] = stats['Project'].apply(lambda x: x.decode('utf-8'))
+    stats['prefix'] = stats['prefix'].apply(lambda x: x.decode('utf-8'))
     curr_log['is_fetch_successful'] = True
 except Exception as e:
     curr_log['is_fetch_successful'] = False

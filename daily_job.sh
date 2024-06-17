@@ -1,4 +1,5 @@
-cd www/python
-source venv/bin/activate
-cd src
-python3 process_data.py
+#!/bin/bash
+
+source ~/www/python/venv/bin/activate
+cd ~/www/python/src
+python process_data.py

@@ -1,2 +1,0 @@
-0 0 * * 0 /cron.sh
-0 0 * * 0 /push_stats.sh

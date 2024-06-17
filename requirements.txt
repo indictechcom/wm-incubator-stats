@@ -1,6 +1,6 @@
-dash==2.11.1
-dash-bootstrap-components==1.4.1
-pandas==2.1.4
-plotly==5.14.1
-Flask==3.1.4
+dash
+dash-bootstrap-components
+pandas
+plotly
+Flask
 

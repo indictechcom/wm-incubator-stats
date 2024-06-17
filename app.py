@@ -6,7 +6,9 @@ import pandas as pd
 import os
 import glob
 
-application = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], title='WM Incubator Stats')
+# application = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], title='WM Incubator Stats')
+application = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
 
 data_files = glob.glob("stats/*.tsv")
 
@@ -206,7 +208,7 @@ def update_table_data(wiki_selection, param_selection, slider_value):
     ]
     return df_filtered.to_dict("records")
 
-if __name__ == "__main__":
-    application.run_server()
+if __name__ == '__main__':
+    application.run_server(debug=True)
 
 app = application.server

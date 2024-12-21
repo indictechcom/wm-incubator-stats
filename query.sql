@@ -123,7 +123,9 @@ mapped_metrics AS (
 ),
 
 -- Map project_code to project name
-final_metrics AS (
+
+--changed the name from 'final_metrics' to 'incubator_dashboard'
+incubator_dashboard AS (
   SELECT
       CASE 
           WHEN project_code = 'Wp' THEN 'wikipedia'
@@ -157,6 +159,6 @@ SELECT
     avg_edits_3M AS avg_monthly_edits, 
     avg_editors_3M AS avg_monthly_editors 
 FROM 
-    final_metrics
+    incubator_dashboard
 ORDER BY 
     avg_editors_3M DESC;
